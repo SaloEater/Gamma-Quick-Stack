@@ -54,7 +54,7 @@ function add_quick_stack_property()
         -- Update info
         gui.update_info = true
     end
-    gui.properties["quick_stack"] = {index = 8, name = "st_quick_stack", mode = {"loot"}, cont = {"actor_bag"}, precondition1 = {"Cond_Move"}, action= {"Action_Quick_Stack"} }
+    gui.properties["quick_stack"] = {index = 8, name = "st_quick_stack", mode = {"loot"}, cont = {"actor_bag"}, action= {"Action_Quick_Stack"} }
     t2k_table(gui.properties["quick_stack"].mode)
     t2k_table(gui.properties["quick_stack"].cont)
 end
