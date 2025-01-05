@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<string_table>
+	<string id="st_quick_stack">
+		<text>quick stack</text>
+	</string>
+	<string id="ui_mcm_menu_quick_stack">
+		<text>Quick Stack</text>
+	</string>
+	<string id="ui_mcm_quick_stack_key_quick_stack">
+		<text>Quick Stack keybind</text>
+	</string>
+	<string id="ui_mcm_quick_stack_key_quick_stack_desc">
+        <text>Press key to detect all of the items in your inventory that can be stacked with the same item inside the storage, and places it in there.</text>
+	</string>
+</string_table>

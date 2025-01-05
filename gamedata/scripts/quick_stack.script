@@ -1,0 +1,147 @@
+-- Events --
+local mcm_keybinds = ui_mcm and ui_mcm.key_hold
+local KEY_STORAGE_STACK = DIK_keys.DIK_Z
+
+-- for G_ overwrite, otherwise not recognised
+local K_CTRL  = DIK_keys.DIK_LCONTROL
+local K_SHIFT = DIK_keys.DIK_LSHIFT
+local K_ALT   = DIK_keys.DIK_LMENU
+
+local gui
+local first_start = true
+
+function on_mcm_load()
+    return {
+        id = "quick_stack",
+        sh = true,
+        gr = {
+            {id = "title", type = "slide", link = "ui_options_slider_player", text = "quick stack", size = {512, 50}, spacing = 20},
+            {id = "key_quick_stack", type = "key_bind", val = 2, def = KEY_STORAGE_STACK },
+        }
+    }
+end
+
+local function on_option_change(mcm)
+    if mcm then
+        KEY_STORAGE_STACK = ui_mcm.get("quick_stack/key_quick_stack") or KEY_STORAGE_STACK
+    end
+end
+
+function add_quick_stack_property()
+    printf("add_quick_stack_property")
+    gui.Action_Quick_Stack = function(obj, bag)
+        gui:Print(nil, "LMode_PutAll")
+
+        local npc = gui:GetPartner()
+        if (not npc) then
+            return
+        end
+
+        local cc = gui.CC["actor_bag"]
+        if (not cc) then
+            return
+        end
+
+        -- Move all possible items
+        for id,idx in pairs(cc.indx_id) do
+            local ci = cc:GetCell_ID(id)
+            if ci then
+                local obj = level.object_by_id(id)
+                if gui:Cond_Move(obj, "actor_bag") then
+                    cc_to = gui.CC["npc_bag"]
+                    sec = obj:section()
+                    similar = cc_to:FindSimilar(obj, sec)
+                    printf("similar %s = %s", sec, similar and "true" or "false")
+                    printf("bag %s", cc_to and "true" or "false")
+                    if similar then
+                        gui:Action_Move_All(obj, "actor_bag")
+                    end
+                end
+            end
+        end
+
+        -- Update info
+        gui.update_info = true
+    end
+    gui.properties["quick_stack"] = {index = 8, name = "st_quick_stack", mode = {"loot"}, cont = {"actor_bag"}, precondition1 = {"Cond_Move"}, action= {"Action_Quick_Stack"} }
+    t2k_table(gui.properties["quick_stack"].mode)
+    t2k_table(gui.properties["quick_stack"].cont)
+end
+
+function doStorageStack()
+    if first_start then
+        add_quick_stack_property()
+        first_start = false
+    end
+end
+
+function on_key_press(key)
+    printf("on_key_press %s %s", gui and "true" or "false", key)
+    if gui and key == KEY_STORAGE_STACK then
+        doStorageStack()
+    end
+end
+
+-- Set flags to False
+local function ui_close()
+    gui = nil
+end
+
+-- Set flags to True
+local function ui_open()
+    printf("ui_open %s %s", ui_inventory.GUI and "true" or "false", ui_inventory.GUI.mode)
+    -- looting inventory -> gui_loot used to disable drop items
+    if ui_inventory.GUI and ui_inventory.GUI.mode == "loot" then
+        gui = ui_inventory.GUI
+        if first_start then
+            add_quick_stack_property()
+            first_start = false
+        end
+    else
+        gui = nil
+    end
+end
+
+-- extra stuff to circumnavigate the GUI lock
+bind_stalker_ext.on_key_press = function(binder,key)
+    printf("on_key_press_ext %s %s", gui and "true" or "false", key)
+    if (not KEYS_UNLOCK) then
+        -- send extra scriptcallback
+        if key == K_CTRL or key == K_SHIFT or key == K_ALT then
+
+            -- overwrite bind_stalker_ext function; allow DROP and DISA keys during gui lock
+            -- TODO; replace with callback to not allow keybind overlap
+        elseif key == KEY_STORAGE_STACK  then
+
+        else
+            return
+        end
+    end
+    SendScriptCallback("on_key_press",key)
+end
+
+bind_stalker_ext.on_key_release = function(binder,key)
+    if (not KEYS_UNLOCK) then
+        if key == K_CTRL or key == K_SHIFT or key == K_ALT then
+
+            -- overwrite bind_stalker_ext function; allow DROP and DISA keys during gui lock
+            -- TODO; replace with callback to not allow keybind overlap
+        elseif key == KEY_STORAGE_STACK then
+
+        else
+            return
+        end
+    end
+    SendScriptCallback("on_key_release",key)
+end
+
+--- start
+function on_game_start()
+    RegisterScriptCallback("on_option_change",on_option_change)
+
+    RegisterScriptCallback("on_key_press",on_key_press)
+
+    RegisterScriptCallback("GUI_on_hide", ui_close)
+    RegisterScriptCallback("GUI_on_show",ui_open)
+    on_option_change(mcm_keybinds)
+end
