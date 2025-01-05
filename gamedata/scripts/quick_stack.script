@@ -30,8 +30,6 @@ end
 function add_quick_stack_property()
     printf("add_quick_stack_property")
     gui.Action_Quick_Stack = function(obj, bag)
-        gui:Print(nil, "LMode_PutAll")
-
         local npc = gui:GetPartner()
         if (not npc) then
             return
@@ -47,15 +45,8 @@ function add_quick_stack_property()
             local ci = cc:GetCell_ID(id)
             if ci then
                 local obj = level.object_by_id(id)
-                if gui:Cond_Move(obj, "actor_bag") then
-                    cc_to = gui.CC["npc_bag"]
-                    sec = obj:section()
-                    similar = cc_to:FindSimilar(obj, sec)
-                    printf("similar %s = %s", sec, similar and "true" or "false")
-                    printf("bag %s", cc_to and "true" or "false")
-                    if similar then
-                        gui:Action_Move_All(obj, "actor_bag")
-                    end
+                if gui:Cond_Move(obj, "actor_bag") and gui.CC["npc_bag"]:FindSimilar(obj, obj:section()) then
+                    gui:Action_Move_All(obj, "actor_bag")
                 end
             end
         end
